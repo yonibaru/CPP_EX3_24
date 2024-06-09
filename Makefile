@@ -1,9 +1,9 @@
 CXX = clang++
 CXXFLAGS = -std=c++11 -Wall
 TARGET = main
-SRCS = main.cpp Board.cpp
+SRCS = main.cpp Board.cpp Player.cpp
 OBJS = $(SRCS:.cpp=.o)
-DEPS = Board.hpp
+DEPS = Board.hpp Player.hpp
 
 all: $(TARGET)
 
