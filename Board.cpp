@@ -2,8 +2,7 @@
 #include <iostream>
 
 //Node methods:
-Player world;
-Node::Node(int num, std::initializer_list<int> neighbourList): number(num), neighbours(neighbourList),buildingType(Building::NONE),port(Port::NONE),buildingOwner(world){}
+Node::Node(int num, std::initializer_list<int> neighbourList): number(num), neighbours(neighbourList),buildingType(Building::NONE),port(Port::NONE),buildingOwner(nullptr){}
 
 bool Node::isNeighbourOf(int n) const {
     return this->neighbours.find(n) != neighbours.end();
@@ -17,8 +16,8 @@ void Node::setResource(Resource r = Resource::NONE){
     }
 }
 
-void Node::placeSettlement(Player& p){
-    if(buildingOwner.getPlayerType() == PlayerType::WORLD){
+void Node::placeSettlement(Player* p){
+    if(!buildingOwner){
         buildingOwner = p;
         buildingType = Building::SETTLEMENT;
     }else{
@@ -26,16 +25,27 @@ void Node::placeSettlement(Player& p){
     }
 }
 
-Player& Node::getOwner(){
-    return buildingOwner;
+Player* Node::getOwner() const{
+    if(buildingOwner == nullptr){
+        return Player(); //Returns a 'WORLD' type player AKA the NULL player.
+    } else{
+        return buildingOwner;
+    }
 }
 
 //Tile Methods
 
-// void Tile::produceResource() const{
-//     for(int i = 0; i < 7;i++){
-//         this->edges[i].
-//     }
-// }
+//Everytime we want to distribute a resource after a dice roll, we just execute produceResource.
+void Tile::produceResource() const{
+    if(type == Resource::NONE){return;}
+    for(int i = 0; i < 7;i++){
+        if(this->edges[i].buildingOwner == nullptr){continue;}
+        
+        this->edges[i].getOwner()->addResource[type];
+        if(this->edges[i].buildingType == Building::CITY){
+            this->edges[i].getOwner()->addResource[type];
+        }
+    }
+}
 
 

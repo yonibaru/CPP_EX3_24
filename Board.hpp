@@ -3,14 +3,14 @@
 #include "Player.hpp"
 #include <unordered_set>
 #include <initializer_list>
-
+#include <memory>
 enum class Resource{
     WOOD,
     STONE,
     WOOL,
     WHEAT,
     BRICK,
-    NONE,
+    NONE, //For desert tiles.
 };
 
 enum class Building{
@@ -29,14 +29,6 @@ enum class Port{
     NONE,
 };
 
-enum class TileType{
-    FOREST,
-    HILLS,
-    PASTURE_LAND,
-    MOUNTAINS,
-    AGRICULTURAL_LAND,
-    DESERT,
-};
 
 class Node{
 
@@ -46,21 +38,21 @@ class Node{
     std::unordered_set<Resource> resources;
     Building buildingType;
     Port port;
-    Player& buildingOwner;
+    Player* buildingOwner; //Each node with a building holds a pointer to its owner.
 
     public:
     Node(int num, std::initializer_list<int> neighbourList);
     void setResource(Resource r);
     bool isNeighbourOf(int n) const;
-    void placeSettlement(Player p);
+    void placeSettlement(Player* p);
     void placeCity();
-    Player& getOwner();
+    Player* getOwner() const;
 };
 class Tile{
 
     private:
     int number;
-    TileType type;
+    Resource type;
     Node edges[6];
     bool isRobbed;
 
