@@ -26,6 +26,7 @@ class Player{
     //VICTORY RELATED METHODS
     int getVictoryPoints() const;
     void addVictoryPoint();
+    void removeVictoryPoint();
     
 };
 
