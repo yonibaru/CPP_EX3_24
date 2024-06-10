@@ -1,34 +1,10 @@
 #ifndef BOARD_HPP
 #define BOARD_HPP
 #include "Player.hpp"
+#include "Types.hpp"
 #include <unordered_set>
 #include <initializer_list>
 #include <memory>
-enum class Resource{
-    WOOD,
-    STONE,
-    WOOL,
-    WHEAT,
-    BRICK,
-    NONE, //For desert tiles.
-};
-
-enum class Building{
-    SETTLEMENT,
-    CITY,
-    NONE,
-};
-
-enum class Port{
-    GENEREAL_PORT, //3:1 PORT
-    WOOD_PORT,     //2:1 WHEAT PORT
-    STONE_PORT,    //2:1 STONE PORT
-    WOOL_PORT,     //2:1 WOOL PORT
-    WHEAT_PORT,    //2:1 WHEAT PORT
-    BRICK_PORT,    //2:1 BRICK PORT
-    NONE,
-};
-
 
 class Node{
 
@@ -41,22 +17,24 @@ class Node{
     Player* buildingOwner; //Each node with a building holds a pointer to its owner.
 
     public:
-    Node(int num, std::initializer_list<int> neighbourList);
+    Node(int number_arg, std::initializer_list<int> neighbours_arg);
     void setResource(Resource r);
     bool isNeighbourOf(int n) const;
     void placeSettlement(Player* p);
     void placeCity();
     Player* getOwner() const;
+    Building getBuildingType() const;
 };
 class Tile{
 
     private:
     int number;
     Resource type;
-    Node edges[6];
+    std::unordered_set<Node*> edges;
     bool isRobbed;
 
     public:
+    Tile(int number_arg, std::initializer_list<Node*> edges_arg,Resource type_arg);
     void produceResource() const;
 };
 class Board{

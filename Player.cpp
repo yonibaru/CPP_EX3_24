@@ -1,10 +1,10 @@
 #include "Player.hpp"
-#include "Board.hpp"
+#include "Types.hpp"
 #include <string>
 #include <map>
 
 Player::Player(): type(PlayerType::WORLD){}; //Empty constructor is simply the 'WORLD' player (since players are pointers we must define this )
-Player::Player(std::string s = "WORLD",int num): name(s),number(num),type(PlayerType::PLAYER),victoryPoints(0){
+Player::Player(std::string s,int num): name(s),number(num),type(PlayerType::PLAYER),victoryPoints(0){
     resourceInventory[Resource::WOOD] = 0;
     resourceInventory[Resource::STONE] = 0;
     resourceInventory[Resource::WOOL] = 0;
@@ -12,12 +12,25 @@ Player::Player(std::string s = "WORLD",int num): name(s),number(num),type(Player
     resourceInventory[Resource::BRICK] = 0;
 };
 //RESOURCE METHODS
-void addResource(Resource){
-    resourceInventory[Resource]++;
+void Player::addResource(Resource resource){
+    resourceInventory[resource]++;
+}
+void Player::removeResource(Resource resource){
+    if(resourceInventory.at(resource) <= 0){
+        throw std::invalid_argument("ERROR: Player has no resources to perform 'removeResource'.");
+    }
+    resourceInventory[resource]--;
 }
 
+//Not sure about this....
+int Player::getStoneAmount() const {
+    return resourceInventory.at(Resource::STONE);  // Returns the value associated with Resource::STONE
+}
+
+
+
 //META METHODS
-std::string Player::getName(){
+std::string Player::getName() const{
     return name;
 }
 PlayerType Player::getPlayerType() const{

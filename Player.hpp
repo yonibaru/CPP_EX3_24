@@ -1,14 +1,8 @@
 #ifndef PLAYER_HPP
 #define PLAYER_HPP
-#include "Board.hpp"
+#include "Types.hpp"
 #include <string>
 #include <map>
-enum class PlayerType{
-    PLAYER,
-    WORLD
-};
-
-
 
 class Player{
 
@@ -18,12 +12,14 @@ class Player{
     PlayerType type;
     int victoryPoints;
     std::map<Resource,int> resourceInventory;
+    
     public:
     Player();
     Player(std::string s,int num);
     //RESOURCE METHODS
-    void addResource();
-    void removeResource();
+    void addResource(Resource resource);
+    void removeResource(Resource resource);
+    int getStoneAmount() const;
     //META METHODS
     PlayerType getPlayerType() const;
     std::string getName() const;
