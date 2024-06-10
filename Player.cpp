@@ -2,6 +2,7 @@
 #include "Types.hpp"
 #include <string>
 #include <map>
+#include <iostream>
 
 Player::Player(): type(PlayerType::WORLD){}; //Empty constructor is simply the 'WORLD' player (since players are pointers we must define this )
 Player::Player(std::string s,int num): name(s),number(num),type(PlayerType::PLAYER),victoryPoints(0){
@@ -42,6 +43,10 @@ int Player::getVictoryPoints() const{
 }
 void Player::addVictoryPoint(){
     victoryPoints++;
+}
+
+void Player::removeVictoryPoint(){
+    victoryPoints--; //If you've lost Longest path card / Biggest army card.
 }
 
 

@@ -1,6 +1,7 @@
 #include "Board.hpp"
 #include "Types.hpp"
 #include <iostream>
+#include <random>
 
 //Node methods:
 Node::Node(int number_arg, std::initializer_list<int> neighbours_arg): number(number_arg), neighbours(neighbours_arg),buildingType(Building::NONE),port(Port::NONE),buildingOwner(nullptr){}
@@ -52,6 +53,193 @@ void Tile::produceResource() const{
             edge->getOwner()->addResource(this->type);
         }
     }
+}
+
+//Catan Methods
+Catan::Catan(Player* p1,Player* p2,Player* p3): {
+    //These nodes would create a hexagonal graph.
+                //       num  nodes_reachable
+                //        |     |
+                //        \/    \/
+    Node* node0 = new Node(0, {1,8});
+    Node* node1 = new Node(1, {0,2});
+    Node* node2 = new Node(2, {1,10,3});
+    Node* node3 = new Node(3, {2,4});
+    Node* node4 = new Node(4,{3,5,12});
+    Node* node5 = new Node(5,{4,6});
+    Node* node6 = new Node(6,{5,14});
+    Node* node7 = new Node(7,{8,17});
+    Node* node8 = new Node(8, {0,9,7});
+    Node* node9 = new Node(9, {8,10,19});
+    Node* node10 = new Node(10, {2,9,11});
+    Node* node11 = new Node(11,{10,12,21});
+    Node* node12 = new Node(12,{4,11,13});
+    Node* node13 = new Node(13, {12,14,23});
+    Node* node14 = new Node(14, {6,13,15});
+    Node* node15 = new Node(15, {14,25});
+    Node* node16 = new Node(16, {17,27});
+    Node* node17 = new Node(17, {7,16,18});
+    Node* node18 = new Node(18, {17,19,29});
+    Node* node19 = new Node(19, {9,18,20});
+    Node* node20 = new Node(20, {19,21,31});
+    Node* node21 = new Node(21, {11,20,22});
+    Node* node22 = new Node(22, {21,23,33});
+    Node* node23 = new Node(23, {13,22,24});
+    Node* node24 = new Node(24, {23,25,35});
+    Node* node25 = new Node(25, {15,24,26});
+    Node* node26 = new Node(26, {25,37});
+    Node* node27 = new Node(27, {16,28});
+    Node* node28 = new Node(28, {27,29,38});
+    Node* node29 = new Node(29, {18,28,30});
+    Node* node30 = new Node(30, {29,31,40});
+    Node* node31 = new Node(31, {20,30,32});
+    Node* node32 = new Node(32, {31,33,42});
+    Node* node33 = new Node(33, {22,32,34});
+    Node* node34 = new Node(34, {33,35,44});
+    Node* node35 = new Node(35, {24,34,36});
+    Node* node36 = new Node(36, {35,37,46});
+    Node* node37 = new Node(37, {26,36});
+    Node* node38 = new Node(38, {28,39});
+    Node* node39 = new Node(39, {38,40,47});
+    Node* node40 = new Node(40, {30,39,41});
+    Node* node41 = new Node(41, {40,42,49});
+    Node* node42 = new Node(42, {32,41,43});
+    Node* node43 = new Node(43, {42,44,51});
+    Node* node44 = new Node(44, {34,43,45});
+    Node* node45 = new Node(45, {44,53,46});
+    Node* node46 = new Node(46, {36,45});
+    Node* node47 = new Node(47, {39,48});
+    Node* node48 = new Node(48, {47,49});
+    Node* node49 = new Node(49, {41,48,50});
+    Node* node50 = new Node(50, {49,51});
+    Node* node51 = new Node(51, {43,50,52});
+    Node* node52 = new Node(52, {51,53});
+    Node* node53 = new Node(53, {45,52});
+    //You have to do it this way. Sorry.
+    nodes[0] = node0;
+    nodes[1] = node1;
+    nodes[2] = node2;
+    nodes[3] = node3;
+    nodes[4] = node4;
+    nodes[5] = node5;
+    nodes[6] = node6;
+    nodes[7] = node7;
+    nodes[8] = node8;
+    nodes[9] = node9;
+    nodes[10] = node10;
+    nodes[11] = node11;
+    nodes[12] = node12;
+    nodes[13] = node13;
+    nodes[14] = node14;
+    nodes[15] = node15;
+    nodes[16] = node16;
+    nodes[17] = node17;
+    nodes[18] = node18;
+    nodes[19] = node19;
+    nodes[20] = node20;
+    nodes[21] = node21;
+    nodes[22] = node22;
+    nodes[23] = node23;
+    nodes[24] = node24;
+    nodes[25] = node25;
+    nodes[26] = node26;
+    nodes[27] = node27;
+    nodes[28] = node28;
+    nodes[29] = node29;
+    nodes[30] = node30;
+    nodes[31] = node31;
+    nodes[32] = node32;
+    nodes[33] = node33;
+    nodes[34] = node34;
+    nodes[35] = node35;
+    nodes[36] = node36;
+    nodes[37] = node37;
+    nodes[38] = node38;
+    nodes[39] = node39;
+    nodes[40] = node40;
+    nodes[41] = node41;
+    nodes[42] = node42;
+    nodes[43] = node43;
+    nodes[44] = node44;
+    nodes[45] = node45;
+    nodes[46] = node46;
+    nodes[47] = node47;
+    nodes[48] = node48;
+    nodes[49] = node49;
+    nodes[50] = node50;
+    nodes[51] = node51;
+    nodes[52] = node52;
+    nodes[53] = node53;
+
+    //We can randomize the third argument (Resource) to easily create a board with randomized resources for an advanced game.
+    //We'll work with the default board for now.
+    Tile* tile10_1 = new Tile(10,{node0,node1,node2,node8,node9,node10},Resource::STONE);
+    Tile* tile2 = new Tile(2,{node2,node3,node4,node10,node11,node12},Resource::WOOL);
+    Tile* tile9_1 = new Tile(9,{node4,node5,node6,node12,node13,node14},Resource::WOOD);
+    Tile* tile12 = new Tile(12,{node7,node8,node9,node17,node18,node19},Resource::WHEAT);
+    Tile* tile6_1 = new Tile(6,{node9,node10,node11,node19,node20,node21},Resource::BRICK);
+    Tile* tile4_1 = new Tile(4,{node11,node12,node13,node21,node22,node23},Resource::WOOL);
+    Tile* tile10_2 = new Tile(10,{node13,node14,node15,node23,node24,node25},Resource::BRICK);
+    Tile* tile9_2 = new Tile(9,{node16,node17,node18,node27,node28,node29},Resource::WHEAT);
+    Tile* tile11_1 = new Tile(11,{node18,node19,node20,node29,node30,node31},Resource::WOOD);
+    Tile* tile7 = new Tile(7,{node20,node21,node22,node31,node32,node33},Resource::NONE); //DESERT???
+    Tile* tile3_1 = new Tile(3,{node22,node23,node24,node33,node34,node35},Resource::WOOD);
+    Tile* tile8_1 = new Tile(8,{node24,node25,node26,node35,node36,node37},Resource::STONE);
+    Tile* tile8_2 = new Tile(8,{node28,node29,node30,node38,node39,node40},Resource::WOOD);
+    Tile* tile3_2 = new Tile(3,{node30,node31,node32,node40,node41,node42},Resource::STONE);
+    Tile* tile4_2 = new Tile(4,{node32,node33,node34,node42,node43,node44},Resource::WHEAT);
+    Tile* tile5_1 = new Tile(5,{node34,node35,node36,node44,node45,node46},Resource::WOOL);
+    Tile* tile5_2 = new Tile(5,{node39,node40,node41,node47,node48,node49},Resource::BRICK);
+    Tile* tile6_2 = new Tile(6,{node41,node42,node43,node49,node50,node51},Resource::WHEAT);
+    Tile* tile11_2 = new Tile(11,{node43,node44,node45,node51,node52,node53},Resource::WOOL);
+
+    tiles[0][0] = nullptr;
+    tiles[0][1] = nullptr;
+    tiles[1][0] = nullptr;
+    tiles[1][1] = nullptr;
+    tiles[2][0] = tile2;
+    tiles[2][1] = nullptr;
+    tiles[3][0] = tile3_1;
+    tiles[3][1] = tile3_2;
+    tiles[4][0] = tile4_1;
+    tiles[4][1] = tile4_2;
+    tiles[5][0] = tile5_1;
+    tiles[5][1] = tile5_2;
+    tiles[6][0] = tile6_1;
+    tiles[6][1] = tile6_2;
+    tiles[7][0] = tile7;
+    tiles[7][1] = nullptr;
+    tiles[8][0] = tile8_1;
+    tiles[8][1] = tile8_2;
+    tiles[9][0] = tile9_1;
+    tiles[9][1] = tile9_2;
+    tiles[10][0] = tile10_1;
+    tiles[10][1] = tile10_2;
+    tiles[11][0] = tile11_1;
+    tiles[11][1] = tile11_2;
+    tiles[12][0] = tile12;
+    tiles[12][1] = nullptr;
+}
+
+void Catan::deleteBoard(){
+    for(int i = 0; i < 54; i++) {
+        delete nodes[i];
+    }
+    for(int i = 0; i < 12; i++) {
+        delete tiles[i][0];
+        delete tiles[i][1];
+    }
+}
+
+void Catan::rollNumber() const{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> distribution(1, 6);
+    int dice1 = distribution(gen);
+    int dice2 = distribution(gen);
+    int sum = dice1 + dice2;
+    std::cout << "Number rolled by : " << sum << std::endl;
+    
 }
 
 

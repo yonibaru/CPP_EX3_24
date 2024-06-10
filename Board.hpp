@@ -5,6 +5,7 @@
 #include <unordered_set>
 #include <initializer_list>
 #include <memory>
+#include <set>
 
 class Node{
 
@@ -37,10 +38,16 @@ class Tile{
     Tile(int number_arg, std::initializer_list<Node*> edges_arg,Resource type_arg);
     void produceResource() const;
 };
-class Board{
+class Catan{
    private:
-   Node nodes[56];
+   Node* nodes[54];
+   Tile* tiles[13][2];
+   std::vector<Player*> players;
    public:
-   Node returnNode(int num) const;
+   Catan(Player* p1,Player* p2,Player* p3);
+   Node* returnNode(int num) const;
+   void deleteBoard();
+   void rollNumber() const;
+   Player* getCurrentPlayer() const;
 };
 #endif
