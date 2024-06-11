@@ -6,6 +6,7 @@
 #include <initializer_list>
 #include <memory>
 #include <set>
+#include <vector>
 
 class Node{
 
@@ -16,13 +17,14 @@ class Node{
     Building buildingType;
     Port port;
     Player* buildingOwner; //Each node with a building holds a pointer to its owner.
-
+    
     public:
     Node(int number_arg, std::initializer_list<int> neighbours_arg);
     void setResource(Resource r);
     bool isNeighbourOf(int n) const;
     void placeSettlement(Player* p);
     void placeCity();
+    std::unordered_set<int> getNeighbours() const;
     Player* getOwner() const;
     Building getBuildingType() const;
 };
@@ -39,15 +41,23 @@ class Tile{
     void produceResource() const;
 };
 class Catan{
+
    private:
    Node* nodes[54];
    Tile* tiles[13][2];
+   int roads[54][54]; //Represents all possible connections 
    std::vector<Player*> players;
+   int turnCount;
+   int currentPlayerIndex;
+   Player* currentPlayerTurn;
+
    public:
    Catan(Player* p1,Player* p2,Player* p3);
+   void placeRoad(int node1,int node2);
+   void endTurn();
    Node* returnNode(int num) const;
    void deleteBoard();
-   void rollNumber() const;
+   void rollDice() const;
    Player* getCurrentPlayer() const;
 };
 #endif

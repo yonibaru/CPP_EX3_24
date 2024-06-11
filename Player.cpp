@@ -24,19 +24,20 @@ void Player::removeResource(Resource resource){
 }
 
 //Not sure about this....
-int Player::getStoneAmount() const {
-    return resourceInventory.at(Resource::STONE);  // Returns the value associated with Resource::STONE
+int Player::getResourceAmount(Resource resource) const {
+    return resourceInventory.at(resource);  // Returns the value associated with Resource::STONE
 }
 
 
 
 //META METHODS
 std::string Player::getName() const{
-    return name;
+    return this->name;
 }
 PlayerType Player::getPlayerType() const{
     return this->type;
 }
+
 //VICTORY RELATED METHODS
 int Player::getVictoryPoints() const{
     return victoryPoints;

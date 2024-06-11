@@ -19,7 +19,7 @@ class Player{
     //RESOURCE METHODS
     void addResource(Resource resource);
     void removeResource(Resource resource);
-    int getStoneAmount() const;
+    int getResourceAmount(Resource resource) const;
     //META METHODS
     PlayerType getPlayerType() const;
     std::string getName() const;

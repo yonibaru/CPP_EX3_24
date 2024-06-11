@@ -34,6 +34,10 @@ Building Node::getBuildingType() const{
     return buildingType;
 }
 
+std::unordered_set<int> Node::getNeighbours() const{
+    return this->neighbours;
+}
+
 //Tile Methods
 
 Tile::Tile(int number_arg, std::initializer_list<Node*> edges_arg, Resource type_arg): number(number_arg),type(type_arg),edges(edges_arg) {
@@ -56,7 +60,7 @@ void Tile::produceResource() const{
 }
 
 //Catan Methods
-Catan::Catan(Player* p1,Player* p2,Player* p3): {
+Catan::Catan(Player* p1,Player* p2,Player* p3): currentPlayerTurn(p1) {
     //These nodes would create a hexagonal graph.
                 //       num  nodes_reachable
                 //        |     |
@@ -219,6 +223,20 @@ Catan::Catan(Player* p1,Player* p2,Player* p3): {
     tiles[11][1] = tile11_2;
     tiles[12][0] = tile12;
     tiles[12][1] = nullptr;
+
+    for (int i = 0; i < 54; ++i) {
+        for (int j = 0; j < 54; ++j) {
+            roads[i][j] = -1;
+        }
+    }
+
+    turnCount = 0;
+    currentPlayerIndex = 0;
+    players.push_back(p1);
+    players.push_back(p2);
+    players.push_back(p3);
+
+    std::cout << "It's now " << currentPlayerTurn->getName() << "'s turn." << std::endl;
 }
 
 void Catan::deleteBoard(){
@@ -231,15 +249,91 @@ void Catan::deleteBoard(){
     }
 }
 
-void Catan::rollNumber() const{
+void Catan::rollDice() const{
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<int> distribution(1, 6);
     int dice1 = distribution(gen);
     int dice2 = distribution(gen);
     int sum = dice1 + dice2;
-    std::cout << "Number rolled by : " << sum << std::endl;
-    
+    std::cout << getCurrentPlayer()->getName() << " rolls the dice and gets: " << sum << std::endl;
+
+    if(tiles[sum][0] != nullptr){
+        tiles[sum][0]->produceResource();
+    }
+    if(tiles[sum][1] != nullptr){
+        tiles[sum][1]->produceResource();
+    }
+}
+
+void Catan::endTurn(){
+    std::cout << currentPlayerTurn->getName() << " ends his turn." << std::endl;
+    std::cout << "---" << std::endl;
+    turnCount = (turnCount + 1) % players.size();
+    currentPlayerIndex = turnCount;
+    currentPlayerTurn = players[turnCount];
+    std::cout << "It's now " << currentPlayerTurn->getName() << "'s turn." << std::endl;
+}
+
+//This function allows the current player to place a road between 2 nodes.
+void Catan::placeRoad(int node1,int node2) {
+
+
+    //Check if currentPlayer has sufficient resources for that road
+    if(currentPlayerTurn->getResourceAmount(Resource::BRICK) < 1 || currentPlayerTurn->getResourceAmount(Resource::WOOD)){
+        return;
+    }
+    //Check if a road could even be placed between the two nodes.
+    if(nodes[node1]->isNeighbourOf(node2) == 0 || nodes[node2]->isNeighbourOf(node1) == 0){
+        return; 
+    }
+    //Check if there's no existing road there.
+    if(roads[node1][node2] != -1 || roads[node2][node1] != -1) {
+        return;
+    }
+
+    //Check if either node has a settlement belonging to the current player
+    //(Otherwise he shouldn't be able to place one there.)
+    if(nodes[node1]->getOwner() == currentPlayerTurn || nodes[node2]->getOwner() == currentPlayerTurn){
+        roads[node1][node2] = currentPlayerIndex;
+        roads[node2][node1] = currentPlayerIndex; 
+        currentPlayerTurn->removeResource(Resource::WOOD);
+        currentPlayerTurn->removeResource(Resource::BRICK);
+        return;
+    }
+
+    // If we reached here it means:
+    // 1. A road could be placed between the two nodes.
+    // 2. Player has the sufficient resources to build the road
+    // 3. Theres no existing road road there
+    // 4. He doesn't have nearby owned settlements.
+    // All that's left is to check whether theres a player-owned road connecting
+    // to one of the nodes.
+
+    for (const auto& element : nodes[node1]->getNeighbours()) {
+        if(roads[node1][element] == currentPlayerIndex && roads[element][node1] == currentPlayerIndex){
+
+            roads[node1][node2] = currentPlayerIndex;
+            roads[node2][node1] = currentPlayerIndex; 
+            currentPlayerTurn->removeResource(Resource::WOOD);
+            currentPlayerTurn->removeResource(Resource::BRICK);
+            return;
+        }
+    }
+
+    for (const auto& element : nodes[node2]->getNeighbours()) {
+        if(roads[node2][element] == currentPlayerIndex && roads[element][node2] == currentPlayerIndex){
+            roads[node1][node2] = currentPlayerIndex;
+            roads[node2][node1] = currentPlayerIndex; 
+            currentPlayerTurn->removeResource(Resource::WOOD);
+            currentPlayerTurn->removeResource(Resource::BRICK);
+            return;
+        }
+    }
+}
+
+Player* Catan::getCurrentPlayer() const{
+    return currentPlayerTurn;
 }
 
 
