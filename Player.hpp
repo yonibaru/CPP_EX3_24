@@ -8,10 +8,11 @@ class Player{
 
     private:
     std::string name;
-    int number;
     PlayerType type;
     int victoryPoints;
     std::map<Resource,int> resourceInventory;
+    int buildingCount;
+    int roadCount;
     
     public:
     Player();
@@ -23,6 +24,10 @@ class Player{
     //META METHODS
     PlayerType getPlayerType() const;
     std::string getName() const;
+    int getBuildingCount() const;
+    void incrementBuildingCount();
+    void getRoadCount() const;
+    void incrementRoadCount();
     //VICTORY RELATED METHODS
     int getVictoryPoints() const;
     void addVictoryPoint();

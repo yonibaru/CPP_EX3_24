@@ -5,12 +5,14 @@
 #include <iostream>
 
 Player::Player(): type(PlayerType::WORLD){}; //Empty constructor is simply the 'WORLD' player (since players are pointers we must define this )
-Player::Player(std::string s,int num): name(s),number(num),type(PlayerType::PLAYER),victoryPoints(0){
+Player::Player(std::string s): name(s),type(PlayerType::PLAYER),victoryPoints(0){
     resourceInventory[Resource::WOOD] = 0;
     resourceInventory[Resource::STONE] = 0;
     resourceInventory[Resource::WOOL] = 0;
     resourceInventory[Resource::WHEAT] = 0;
     resourceInventory[Resource::BRICK] = 0;
+    buildingCount = 0;
+    roadCount = 0;
 };
 //RESOURCE METHODS
 void Player::addResource(Resource resource){
@@ -22,12 +24,17 @@ void Player::removeResource(Resource resource){
     }
     resourceInventory[resource]--;
 }
-
-//Not sure about this....
 int Player::getResourceAmount(Resource resource) const {
     return resourceInventory.at(resource);  // Returns the value associated with Resource::STONE
 }
 
+void Player::incrementBuildingCount(){
+    this->buildingCount++;
+}
+
+void Player::incrementRoadCount(){
+    this->roadCount++;
+}
 
 
 //META METHODS
@@ -36,6 +43,14 @@ std::string Player::getName() const{
 }
 PlayerType Player::getPlayerType() const{
     return this->type;
+}
+
+int Player::getBuildingCount() const{
+    return this->buildingCount;
+}
+
+int Player::getRoadCount() const{
+    return this->roadCount;
 }
 
 //VICTORY RELATED METHODS

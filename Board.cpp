@@ -2,6 +2,7 @@
 #include "Types.hpp"
 #include <iostream>
 #include <random>
+#include <algorithm>
 
 //Node methods:
 Node::Node(int number_arg, std::initializer_list<int> neighbours_arg): number(number_arg), neighbours(neighbours_arg),buildingType(Building::NONE),port(Port::NONE),buildingOwner(nullptr){}
@@ -21,17 +22,26 @@ void Node::placeSettlement(Player* p){
     if(!buildingOwner){
         buildingOwner = p;
         buildingType = Building::SETTLEMENT;
+        p->incrementBuildingCount();
+        p->addVictoryPoint();
     }else{
         std::cout << "This tile is already occupied by another player!" << std::endl;
     }
 }
 
+void Node::placeCity(Player* p){
+    if(buildingOwner == p && buildingType == Building::SETTLEMENT){
+        buildingType = Building::CITY;
+        p->addVictoryPoint();
+    }
+}
+
 Player* Node::getOwner() const{
-    return buildingOwner; //returns a nullptr if theres no owner (for now.)
+    return this->buildingOwner; //returns a nullptr if theres no owner (for now.)
 }
 
 Building Node::getBuildingType() const{
-    return buildingType;
+    return this->buildingType;
 }
 
 std::unordered_set<int> Node::getNeighbours() const{
@@ -258,6 +268,8 @@ void Catan::rollDice() const{
     int sum = dice1 + dice2;
     std::cout << getCurrentPlayer()->getName() << " rolls the dice and gets: " << sum << std::endl;
 
+    // if 7 is rolled do x.....
+
     if(tiles[sum][0] != nullptr){
         tiles[sum][0]->produceResource();
     }
@@ -277,7 +289,6 @@ void Catan::endTurn(){
 
 //This function allows the current player to place a road between 2 nodes.
 void Catan::placeRoad(int node1,int node2) {
-
 
     //Check if currentPlayer has sufficient resources for that road
     if(currentPlayerTurn->getResourceAmount(Resource::BRICK) < 1 || currentPlayerTurn->getResourceAmount(Resource::WOOD)){
@@ -299,6 +310,8 @@ void Catan::placeRoad(int node1,int node2) {
         roads[node2][node1] = currentPlayerIndex; 
         currentPlayerTurn->removeResource(Resource::WOOD);
         currentPlayerTurn->removeResource(Resource::BRICK);
+        currentPlayerTurn->incrementRoadCount();
+        std::cout << getCurrentPlayer()->getName() << " places a road between nodes " << node1 << " and " << node2 << "." << std::endl;
         return;
     }
 
@@ -312,11 +325,12 @@ void Catan::placeRoad(int node1,int node2) {
 
     for (const auto& element : nodes[node1]->getNeighbours()) {
         if(roads[node1][element] == currentPlayerIndex && roads[element][node1] == currentPlayerIndex){
-
             roads[node1][node2] = currentPlayerIndex;
             roads[node2][node1] = currentPlayerIndex; 
             currentPlayerTurn->removeResource(Resource::WOOD);
             currentPlayerTurn->removeResource(Resource::BRICK);
+            currentPlayerTurn->incrementRoadCount();
+            std::cout << getCurrentPlayer()->getName() << " places a road between nodes " << node1 << " and " << node2 << "." << std::endl;
             return;
         }
     }
@@ -327,13 +341,148 @@ void Catan::placeRoad(int node1,int node2) {
             roads[node2][node1] = currentPlayerIndex; 
             currentPlayerTurn->removeResource(Resource::WOOD);
             currentPlayerTurn->removeResource(Resource::BRICK);
+            currentPlayerTurn->incrementRoadCount();
+            std::cout << getCurrentPlayer()->getName() << " places a road between nodes " << node1 << " and " << node2 << "." << std::endl;
             return;
         }
     }
+}
+
+void Catan::placeFreeRoad(Player* p,int node1,int node2) {
+    if(p->getRoadCount >= 2){
+        return;
+    }
+    //Check if a road could even be placed between the two nodes.
+    if(nodes[node1]->isNeighbourOf(node2) == 0 || nodes[node2]->isNeighbourOf(node1) == 0){
+        return; 
+    }
+    //Check if there's no existing road there.
+    if(roads[node1][node2] != -1 || roads[node2][node1] != -1) {
+        return;
+    }
+
+    //Check if either node has a settlement belonging to the current player
+    //(Otherwise he shouldn't be able to place one there.)
+    if(nodes[node1]->getOwner() == p || nodes[node2]->getOwner() == p){
+        roads[node1][node2] = getPlayerIndex(p);
+        roads[node2][node1] = getPlayerIndex(p); 
+        p->incrementRoadCount();
+        std::cout << players[getPlayerIndex(p)]->getName() << " places a road between nodes " << node1 << " and " << node2 << "." << std::endl;
+        return;
+    }
+
+    // If we reached here it means:
+    // 1. A road could be placed between the two nodes.
+    // 3. Theres no existing road road there
+    // 4. He doesn't have nearby owned settlements.
+    // All that's left is to check whether theres a player-owned road connecting
+    // to one of the nodes.
+
+    for (const auto& element : nodes[node1]->getNeighbours()) {
+        if(roads[node1][element] == getPlayerIndex(p) && roads[element][node1] == getPlayerIndex(p)){
+            roads[node1][node2] = getPlayerIndex(p);
+            roads[node2][node1] = getPlayerIndex(p);  
+            std::cout << players[getPlayerIndex(p)]->getName() << " places a road between nodes " << node1 << " and " << node2 << "." << std::endl;
+            p->incrementRoadCount();
+            return;
+        }
+    }
+
+    for (const auto& element : nodes[node2]->getNeighbours()) {
+        if(roads[node2][element] == getPlayerIndex(p) && roads[element][node2] == getPlayerIndex(p)){
+            roads[node1][node2] = getPlayerIndex(p);
+            roads[node2][node1] = getPlayerIndex(p); 
+            std::cout << getCurrentPlayer()->getName() << " places a road between nodes " << node1 << " and " << node2 << "." << std::endl;
+            p->incrementRoadCount();
+            return;
+        }
+    }
+}
+
+//This can be used by any player at the start of the game to place 2 free settlements anywhere on the board.
+void Catan::placeFreeSettlement(Player* p, int node){
+    //Check if there's an existing building on that node.
+    if(nodes[node]->getBuildingType() != Building::NONE){
+        return;
+    }
+
+    //Check if there are any settlements on the nearby nodes
+    for(const auto& element: node[node]->getNeighbours()){
+        if(node[element]->getBuildingType != Building::NONE){
+            return;
+        }
+    }
+    //The first two settlements are free and can be placed on any node (assuming its empty)
+    if(p->getBuildingCount() < 2){
+        nodes[node]->placeSettlement(p);
+        std::cout << players[getPlayerIndex(p)]->getName() << " placed a settlement in node " << node <<"." << std::endl;
+    }
+}
+
+//Turn-specific function, allows the player of the current turn to place a settlement.
+void Catan::placeSettlement(int node){
+    //Check if there's an existing building on that node.
+    if(nodes[node]->getBuildingType() != Building::NONE){
+        return;
+    }
+    //Check if there are any settlements on the nearby nodes
+    for(const auto& element: node[node]->getNeighbours()){
+        if(node[element]->getBuildingType != Building::NONE){
+            return;
+        }
+    }
+    //Check if he has the resources
+    if(currentPlayerTurn->getResourceAmount(Resource::WOOD) < 1 || currentPlayerTurn->getResourceAmount(Resource::WHEAT) < 1 || currentPlayerTurn->getResourceAmount(Resource::BRICK) < 1 || currentPlayerTurn->getResourceAmount(Resource::WOOL) < 1){
+        return;
+    }
+    //Check if theres atleast one friendly road connecting to this node and if so, let the player place the road.
+    for (const auto& element : nodes[node]->getNeighbours()) {
+        if(roads[node][element] == currentPlayerIndex && roads[element][node] == currentPlayerIndex){
+            nodes[node]->placeSettlement(currentPlayerTurn);
+            currentPlayerTurn->removeResource(Resource::WOOD);
+            currentPlayerTurn->removeResource(Resource::BRICK);
+            currentPlayerTurn->removeResource(Resource::WOOL);
+            currentPlayerTurn->removeResource(Resource::WHEAT);
+            std::cout << getCurrentPlayer()->getName() << " placed a settlement in node " << node <<"." << std::endl;
+            return;
+        }
+    }
+
+
+}
+
+
+void Catan::upgradeSettlement(int node){
+    //Check if that node is not empty
+    if(nodes[node]->getBuildingType() != Building::SETTLEMENT){
+        return;
+    }
+    //Check if it is owned by the current player
+    if(nodes[node]->getOwner() != currentPlayerTurn){
+        return;
+    }
+    //Check if he has the sufficient resource to upgrade
+    if(currentPlayerTurn->getResourceAmount(Resource::STONE) < 3 || currentPlayerTurn->getResourceAmount(Resource::WHEAT) < 2){
+        return;
+    }
+    currentPlayerTurn->removeResource(Resource::STONE);
+    currentPlayerTurn->removeResource(Resource::STONE);
+    currentPlayerTurn->removeResource(Resource::STONE);
+    currentPlayerTurn->removeResource(Resource::WHEAT);
+    currentPlayerTurn->removeResource(Resource::WHEAT);
+    nodes[node]->placeCity(currentPlayerTurn);
 }
 
 Player* Catan::getCurrentPlayer() const{
     return currentPlayerTurn;
 }
 
+int Catan::getPlayerIndex(Player* p) const{
+    auto it = std::find(players.begin(), players.end(), p);
+    if (it != players.end()) {
+        return std::distance(players.begin(), it);
+    } else {
+        return -1;
+    }
+}
 

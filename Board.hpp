@@ -23,7 +23,7 @@ class Node{
     void setResource(Resource r);
     bool isNeighbourOf(int n) const;
     void placeSettlement(Player* p);
-    void placeCity();
+    void placeCity(Player* p);
     std::unordered_set<int> getNeighbours() const;
     Player* getOwner() const;
     Building getBuildingType() const;
@@ -54,10 +54,15 @@ class Catan{
    public:
    Catan(Player* p1,Player* p2,Player* p3);
    void placeRoad(int node1,int node2);
+   void placeSettlement(int node);
+   void placeFreeSettlement(Player* p, int node);
+   void placeFreeRoad(Player* p,int node1,int node2);
+   void upgradeSettlement(int node);
    void endTurn();
    Node* returnNode(int num) const;
    void deleteBoard();
    void rollDice() const;
    Player* getCurrentPlayer() const;
+   int getPlayerIndex(Player* p) const;
 };
 #endif
