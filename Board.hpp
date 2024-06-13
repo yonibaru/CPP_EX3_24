@@ -9,7 +9,6 @@
 #include <vector>
 
 class Node{
-
     private:
     int number;
     std::unordered_set<int> neighbours; //Neighbouring nodes, required to properly define all possible edges AKA roads.

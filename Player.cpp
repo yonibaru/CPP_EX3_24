@@ -24,6 +24,15 @@ void Player::removeResource(Resource resource){
     }
     resourceInventory[resource]--;
 }
+
+void Player::printResources() const{
+    std::cout << this->name << "'s Inventory:\n";
+    std::cout << "WOOD: " << resourceInventory.at(Resource::WOOD) << "\n";
+    std::cout << "STONE: " << resourceInventory.at(Resource::STONE) << "\n";
+    std::cout << "WOOL: " << resourceInventory.at(Resource::WOOL) << "\n";
+    std::cout << "WHEAT: " << resourceInventory.at(Resource::WHEAT) << "\n";
+    std::cout << "BRICK: " << resourceInventory.at(Resource::BRICK) << "\n";
+}
 int Player::getResourceAmount(Resource resource) const {
     return resourceInventory.at(resource);  // Returns the value associated with Resource::STONE
 }

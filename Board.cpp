@@ -349,15 +349,18 @@ void Catan::placeRoad(int node1,int node2) {
 }
 
 void Catan::placeFreeRoad(Player* p,int node1,int node2) {
-    if(p->getRoadCount >= 2){
+    if(p->getRoadCount() >= 2){
+        std::cout << "1" << std::endl;
         return;
     }
     //Check if a road could even be placed between the two nodes.
     if(nodes[node1]->isNeighbourOf(node2) == 0 || nodes[node2]->isNeighbourOf(node1) == 0){
+        std::cout << "2" << std::endl;
         return; 
     }
     //Check if there's no existing road there.
     if(roads[node1][node2] != -1 || roads[node2][node1] != -1) {
+        std::cout << "3" << std::endl;
         return;
     }
 
@@ -397,6 +400,7 @@ void Catan::placeFreeRoad(Player* p,int node1,int node2) {
             return;
         }
     }
+    std::cout << "4" << std::endl;
 }
 
 //This can be used by any player at the start of the game to place 2 free settlements anywhere on the board.
@@ -407,8 +411,8 @@ void Catan::placeFreeSettlement(Player* p, int node){
     }
 
     //Check if there are any settlements on the nearby nodes
-    for(const auto& element: node[node]->getNeighbours()){
-        if(node[element]->getBuildingType != Building::NONE){
+    for(const auto& element: nodes[node]->getNeighbours()){
+        if(nodes[element]->getBuildingType() != Building::NONE){
             return;
         }
     }
@@ -426,8 +430,8 @@ void Catan::placeSettlement(int node){
         return;
     }
     //Check if there are any settlements on the nearby nodes
-    for(const auto& element: node[node]->getNeighbours()){
-        if(node[element]->getBuildingType != Building::NONE){
+    for(const auto& element: nodes[node]->getNeighbours()){
+        if(nodes[element]->getBuildingType() != Building::NONE){
             return;
         }
     }

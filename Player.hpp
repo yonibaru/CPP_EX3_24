@@ -16,17 +16,18 @@ class Player{
     
     public:
     Player();
-    Player(std::string s,int num);
+    Player(std::string s);
     //RESOURCE METHODS
     void addResource(Resource resource);
     void removeResource(Resource resource);
     int getResourceAmount(Resource resource) const;
+    void printResources() const;
     //META METHODS
     PlayerType getPlayerType() const;
     std::string getName() const;
     int getBuildingCount() const;
     void incrementBuildingCount();
-    void getRoadCount() const;
+    int getRoadCount() const;
     void incrementRoadCount();
     //VICTORY RELATED METHODS
     int getVictoryPoints() const;
