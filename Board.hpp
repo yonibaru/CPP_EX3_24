@@ -49,7 +49,8 @@ class Catan{
    int turnCount;
    int currentPlayerIndex;
    Player* currentPlayerTurn;
-
+   std::vector<DevCardType> deck;
+   Player* currentBiggestArmyHolder;
    public:
    Catan(Player* p1,Player* p2,Player* p3);
    void placeRoad(int node1,int node2);
@@ -57,11 +58,15 @@ class Catan{
    void placeFreeSettlement(Player* p, int node);
    void placeFreeRoad(Player* p,int node1,int node2);
    void upgradeSettlement(int node);
+   void buyDevelopmentCard();
+   void useDevelopmentCard(DevCardType card);
+//    void tradeCards(p1,p2,)
    void endTurn();
-   Node* returnNode(int num) const;
    void deleteBoard();
    void rollDice() const;
    Player* getCurrentPlayer() const;
    int getPlayerIndex(Player* p) const;
+   void checkWinner() const;
+   void checkBiggestArmyCard();
 };
 #endif

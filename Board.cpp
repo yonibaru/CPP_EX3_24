@@ -71,6 +71,8 @@ void Tile::produceResource() const{
 
 //Catan Methods
 Catan::Catan(Player* p1,Player* p2,Player* p3): currentPlayerTurn(p1) {
+
+    //Initialize nodes
     //These nodes would create a hexagonal graph.
                 //       num  nodes_reachable
                 //        |     |
@@ -207,6 +209,7 @@ Catan::Catan(Player* p1,Player* p2,Player* p3): currentPlayerTurn(p1) {
     Tile* tile6_2 = new Tile(6,{node41,node42,node43,node49,node50,node51},Resource::WHEAT);
     Tile* tile11_2 = new Tile(11,{node43,node44,node45,node51,node52,node53},Resource::WOOL);
 
+    //Initialize tiles
     tiles[0][0] = nullptr;
     tiles[0][1] = nullptr;
     tiles[1][0] = nullptr;
@@ -234,19 +237,41 @@ Catan::Catan(Player* p1,Player* p2,Player* p3): currentPlayerTurn(p1) {
     tiles[12][0] = tile12;
     tiles[12][1] = nullptr;
 
+    //Initialize roads
     for (int i = 0; i < 54; ++i) {
         for (int j = 0; j < 54; ++j) {
             roads[i][j] = -1;
         }
     }
+    // Initialize Development Cards
+    for (int i = 0; i < 14; ++i) {
+        deck.push_back(DevCardType::KNIGHT);
+    }
+    for (int i = 0; i < 2; ++i) {
+        deck.push_back(DevCardType::ROAD_BUILDING);
+    }
+    for (int i = 0; i < 2; ++i) {
+        deck.push_back(DevCardType::YEAR_OF_PLENTY);
+    }
+    for (int i = 0; i < 2; ++i) {
+        deck.push_back(DevCardType::MONOPOLY);
+    }
+    for (int i = 0; i < 5; ++i) {
+        deck.push_back(DevCardType::VICTORY_POINT);
+    }
+
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(deck.begin(), deck.end(), g);
 
     turnCount = 0;
     currentPlayerIndex = 0;
+    currentBiggestArmyHolder = nullptr;
     players.push_back(p1);
     players.push_back(p2);
     players.push_back(p3);
-
     std::cout << "It's now " << currentPlayerTurn->getName() << "'s turn." << std::endl;
+
 }
 
 void Catan::deleteBoard(){
@@ -269,6 +294,12 @@ void Catan::rollDice() const{
     std::cout << getCurrentPlayer()->getName() << " rolls the dice and gets: " << sum << std::endl;
 
     // if 7 is rolled do x.....
+    if(sum == 7){
+        std::cout << "SPECIAL CASE: 7 WAS ROLLED! Robber HAS to be moved and no player shall any gain resources." << sum << std::endl;
+        //If we wanted to expand this into the full version of Catan, we would create a rolledSeven() function which would prompt to move the robber.
+    
+        return;
+    }
 
     if(tiles[sum][0] != nullptr){
         tiles[sum][0]->produceResource();
@@ -451,8 +482,6 @@ void Catan::placeSettlement(int node){
             return;
         }
     }
-
-
 }
 
 
@@ -475,6 +504,44 @@ void Catan::upgradeSettlement(int node){
     currentPlayerTurn->removeResource(Resource::WHEAT);
     currentPlayerTurn->removeResource(Resource::WHEAT);
     nodes[node]->placeCity(currentPlayerTurn);
+    std::cout << getCurrentPlayer()->getName() << " upgraded a settlement to a city at node " << node <<"." << std::endl;
+}
+
+void Catan::buyDevelopmentCard(){
+    if (deck.empty()) {
+        throw std::out_of_range("The deck is empty");
+    }
+    if(currentPlayerTurn->getResourceAmount(Resource::WHEAT) < 1  || currentPlayerTurn->getResourceAmount(Resource::STONE) < 1 || currentPlayerTurn-> getResourceAmount(Resource::WOOL) < 1){
+        return;
+    }
+    currentPlayerTurn->removeResource(Resource::WHEAT);
+    currentPlayerTurn->removeResource(Resource::WOOL);
+    currentPlayerTurn->removeResource(Resource::STONE);
+    DevCardType drawnCard = deck.back();
+    currentPlayerTurn->addDevCard(drawnCard);
+    deck.pop_back();
+    std::cout << getCurrentPlayer()->getName() << " bought a development card. " << std::endl;
+}
+
+void Catan::useDevelopmentCard(DevCardType card){
+    //Doesn't have that card.
+    if(currentPlayerTurn->getDevCardAmount(card) < 1){
+        return;
+    }
+
+    if(card == DevCardType::KNIGHT){
+        return; //In our version, this doesn't do anything. Normally it would move the robber.
+    } else if(card == DevCardType::MONOPOLY){
+
+    } else if(card == DevCardType::ROAD_BUILDING){
+
+    } else if(card == DevCardType::VICTORY_POINT){
+        return; //Can't do nothing
+    } else if(card == DevCardType::YEAR_OF_PLENTY){
+
+    } else {
+
+    }
 }
 
 Player* Catan::getCurrentPlayer() const{
@@ -487,6 +554,46 @@ int Catan::getPlayerIndex(Player* p) const{
         return std::distance(players.begin(), it);
     } else {
         return -1;
+    }
+}
+
+void Catan::checkBiggestArmyCard(){
+    int biggestArmyAmount = 0;
+    for(auto p:this->players){
+        if(p->biggestArmy == true){
+            p->removeVictoryPoint();
+            p->removeVictoryPoint();
+        }
+        p->biggestArmy = false;
+    }
+    Player* currentPlayerWithBiggestArmy = nullptr;
+    for(auto p: this->players){
+        if(p->getDevCardAmount(DevCardType::KNIGHT) > biggestArmyAmount && biggestArmyAmount >= 3){
+            currentPlayerWithBiggestArmy = p;
+        }
+    }
+    if(currentPlayerWithBiggestArmy == nullptr){
+        return; //There are no players with the largest army.
+    }
+    for(auto p:this->players){
+        if(currentPlayerWithBiggestArmy->getDevCardAmount(DevCardType::KNIGHT) == p->getDevCardAmount(DevCardType::KNIGHT) && p != currentPlayerWithBiggestArmy){
+            return; //Two players have the same amount of knights.
+        }
+    }
+    currentPlayerWithBiggestArmy->biggestArmy = true;
+    currentPlayerWithBiggestArmy->addVictoryPoint();
+    currentPlayerWithBiggestArmy->addVictoryPoint();
+    if(currentBiggestArmyHolder != currentPlayerWithBiggestArmy){
+        std::cout << currentPlayerWithBiggestArmy->getName() << " has the biggest army now and receives 2 victory points!" << std::endl;
+    }
+    currentBiggestArmyHolder = currentPlayerWithBiggestArmy;
+}
+
+void Catan::checkWinner() const{
+    for(auto p: this->players){
+        if(p->getVictoryPoints() >= 10){
+            std::cout << p->getName() << " is the winner!" << std::endl;
+        }
     }
 }
 

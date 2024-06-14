@@ -31,4 +31,13 @@ enum class Port{
     NONE,
 };
 
+enum class DevCardType{
+    KNIGHT,
+    VICTORY_POINT,
+    YEAR_OF_PLENTY,
+    MONOPOLY,
+    ROAD_BUILDING,
+    NONE,
+};
+
 #endif

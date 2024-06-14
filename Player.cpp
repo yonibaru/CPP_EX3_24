@@ -11,8 +11,14 @@ Player::Player(std::string s): name(s),type(PlayerType::PLAYER),victoryPoints(0)
     resourceInventory[Resource::WOOL] = 0;
     resourceInventory[Resource::WHEAT] = 0;
     resourceInventory[Resource::BRICK] = 0;
+    devCardInventory[DevCardType::KNIGHT] = 0;
+    devCardInventory[DevCardType::ROAD_BUILDING] = 0;
+    devCardInventory[DevCardType::YEAR_OF_PLENTY] = 0;
+    devCardInventory[DevCardType::MONOPOLY] = 0;
+    devCardInventory[DevCardType::VICTORY_POINT] = 0;
     buildingCount = 0;
     roadCount = 0;
+    biggestArmy = false;
 };
 //RESOURCE METHODS
 void Player::addResource(Resource resource){
@@ -20,7 +26,7 @@ void Player::addResource(Resource resource){
 }
 void Player::removeResource(Resource resource){
     if(resourceInventory.at(resource) <= 0){
-        throw std::invalid_argument("ERROR: Player has no resources to perform 'removeResource'.");
+        throw std::invalid_argument("ERROR: Player has no resources to perform 'removeResource()'.");
     }
     resourceInventory[resource]--;
 }
@@ -35,6 +41,21 @@ void Player::printResources() const{
 }
 int Player::getResourceAmount(Resource resource) const {
     return resourceInventory.at(resource);  // Returns the value associated with Resource::STONE
+}
+
+void Player::addDevCard(DevCardType card){
+    devCardInventory[card]++;
+}
+
+void Player::removeDevCard(DevCardType card){
+    if(devCardInventory.at(card) <= 0){
+        throw std::invalid_argument("ERROR: Player has insufficent card amount to perform 'removeDevCard()'.");
+    }
+    devCardInventory[card]--;
+}
+
+int Player::getDevCardAmount(DevCardType card) const{
+    return devCardInventory.at(card);
 }
 
 void Player::incrementBuildingCount(){
@@ -64,7 +85,8 @@ int Player::getRoadCount() const{
 
 //VICTORY RELATED METHODS
 int Player::getVictoryPoints() const{
-    return victoryPoints;
+    int actualVictoryPoints = victoryPoints + getDevCardAmount(DevCardType::VICTORY_POINT); 
+    return actualVictoryPoints;
 }
 void Player::addVictoryPoint(){
     victoryPoints++;

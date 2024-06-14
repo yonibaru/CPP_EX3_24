@@ -7,10 +7,13 @@
 int main() {
 
     //The logic of catan is fully intergrated into the 'Catan' class, that 
-    //means we could easily implement a UI and build an actual game.
-    //Note that I have yet to implement the longest path card since it wasn't required
-    //and didn't have time to but in order to add it we must run a longest path algorithm which is 
-    //rather difficult compared to shortest path.
+    //means we could easily implement a UI and build an actual game. Missing features that weren't required but 
+    //ARE requried to play the full game:
+    // * Trades with Ports - could be easily supported in my code.
+    // * Longest Path - not trivial, we need to run a longest path algorithm at the end of each turn
+    //   which is NOT polynomial.
+    // * Robber -
+
     Player* p1 = new Player("Michael");
     Player* p2 = new Player("Robert");
     Player* p3 = new Player("Edward");
@@ -43,6 +46,9 @@ int main() {
     p1->printResources();
     p2->printResources();
     p3->printResources();
+
+
+    board.checkWinner(); //Iterates over the players, check if theres a player with 10 or more victory points.
 
     delete p1;
     delete p2;
