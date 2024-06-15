@@ -57,9 +57,13 @@ class Catan{
    void placeSettlement(int node);
    void placeFreeSettlement(Player* p, int node);
    void placeFreeRoad(Player* p,int node1,int node2);
+   bool canBuildRoad(int node1, int node2);
    void upgradeSettlement(int node);
    void buyDevelopmentCard();
-   void useDevelopmentCard(DevCardType card);
+   void useYearOfPlentyCard(Resource resource1,Resource resource2);
+   void useRoadBuildingCard(int node1,int node2,int node3,int node4);
+   void useMonopolyCard(Resource resource);
+   void tradeResource(Player* p, Resource resource1, int amount1, Resource resource2, int amount2);
 //    void tradeCards(p1,p2,)
    void endTurn();
    void deleteBoard();

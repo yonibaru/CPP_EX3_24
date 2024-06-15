@@ -312,6 +312,7 @@ void Catan::rollDice() const{
 void Catan::endTurn(){
     std::cout << currentPlayerTurn->getName() << " ends his turn." << std::endl;
     std::cout << "---" << std::endl;
+    checkBiggestArmyCard();
     turnCount = (turnCount + 1) % players.size();
     currentPlayerIndex = turnCount;
     currentPlayerTurn = players[turnCount];
@@ -379,6 +380,7 @@ void Catan::placeRoad(int node1,int node2) {
     }
 }
 
+
 void Catan::placeFreeRoad(Player* p,int node1,int node2) {
     if(p->getRoadCount() >= 2){
         std::cout << "1" << std::endl;
@@ -434,6 +436,42 @@ void Catan::placeFreeRoad(Player* p,int node1,int node2) {
     std::cout << "4" << std::endl;
 }
 
+bool Catan::canBuildRoad(int node1,int node2){
+
+    //Check if a road could even be placed between the two nodes.
+    if(nodes[node1]->isNeighbourOf(node2) == 0 || nodes[node2]->isNeighbourOf(node1) == 0){
+        return false;
+    }
+    //Check if there's no existing road there.
+    if(roads[node1][node2] != -1 || roads[node2][node1] != -1) {
+        return false;
+    }
+
+    //Check if either node has a settlement belonging to the current player
+    //(Otherwise he shouldn't be able to place one there.)
+    if(nodes[node1]->getOwner() == currentPlayerTurn || nodes[node2]->getOwner() == currentPlayerTurn){
+        return true;
+    }
+
+    // If we reached here it means:
+    // 1. A road could be placed between the two nodes.
+    // 2. Player has the sufficient resources to build the road
+    // 3. Theres no existing road road there
+    // 4. He doesn't have nearby owned settlements.
+    // All that's left is to check whether theres a player-owned road connecting
+    // to one of the nodes.
+
+    for (const auto& element : nodes[node1]->getNeighbours()) {
+        if(roads[node1][element] == currentPlayerIndex && roads[element][node1] == currentPlayerIndex){
+            return true;
+        }
+    }
+    for (const auto& element : nodes[node2]->getNeighbours()) {
+        if(roads[node2][element] == currentPlayerIndex && roads[element][node2] == currentPlayerIndex){
+            return true;
+        }
+    }
+}
 //This can be used by any player at the start of the game to place 2 free settlements anywhere on the board.
 void Catan::placeFreeSettlement(Player* p, int node){
     //Check if there's an existing building on that node.
@@ -523,24 +561,82 @@ void Catan::buyDevelopmentCard(){
     std::cout << getCurrentPlayer()->getName() << " bought a development card. " << std::endl;
 }
 
-void Catan::useDevelopmentCard(DevCardType card){
+void Catan::useMonopolyCard(Resource resource){
     //Doesn't have that card.
-    if(currentPlayerTurn->getDevCardAmount(card) < 1){
+    if(currentPlayerTurn->getDevCardAmount(DevCardType::MONOPOLY) < 1){
         return;
     }
+    for(auto p:this->players){
+        if(p != this->currentPlayerTurn){
+            int amount = p->getResourceAmount(resource);
+            for(int i = 0; i < amount; i++){
+                p->removeResource(resource);
+                currentPlayerTurn->addResource(resource);
+            }
+        }
+    }
+    currentPlayerTurn->removeDevCard(DevCardType::MONOPOLY);
+}
 
-    if(card == DevCardType::KNIGHT){
-        return; //In our version, this doesn't do anything. Normally it would move the robber.
-    } else if(card == DevCardType::MONOPOLY){
+void Catan::useYearOfPlentyCard(Resource resource1,Resource resource2){
+    //Doesn't have that card.
+    if(currentPlayerTurn->getDevCardAmount(DevCardType::YEAR_OF_PLENTY) < 1){
+        return;
+    }
+    currentPlayerTurn->addResource(resource1);
+    currentPlayerTurn->addResource(resource2);
+    currentPlayerTurn->removeDevCard(DevCardType::YEAR_OF_PLENTY);
+}
 
-    } else if(card == DevCardType::ROAD_BUILDING){
+void Catan::useRoadBuildingCard(int node1, int node2, int node3, int node4){
+    //Doesn't have that card.
+    if(currentPlayerTurn->getDevCardAmount(DevCardType::ROAD_BUILDING) < 1){
+        return;
+    }
+    if(canBuildRoad(node1,node2) && canBuildRoad(node3,node4)){
+        currentPlayerTurn->addResource(Resource::BRICK);
+        currentPlayerTurn->addResource(Resource::BRICK);
+        currentPlayerTurn->addResource(Resource::WOOD);
+        currentPlayerTurn->addResource(Resource::WOOD);
+        placeRoad(node1,node2);
+        placeRoad(node3,node4);
+        currentPlayerTurn->removeDevCard(DevCardType::ROAD_BUILDING);
+    } 
+}
 
-    } else if(card == DevCardType::VICTORY_POINT){
-        return; //Can't do nothing
-    } else if(card == DevCardType::YEAR_OF_PLENTY){
+void Catan::tradeResource(Player* p, Resource resource1, int amount1, Resource resource2, int amount2){
+    if(p == currentPlayerTurn){
+        return;
+    }
+    if(currentPlayerTurn->getResourceAmount(resource1) < amount1 || currentPlayerTurn->getResourceAmount(resource2) < amount2){
+        return;
+    }
+    
+    for(int i = 0; i < amount1; i++){
+        currentPlayerTurn->removeResource(resource1);
+        p->addResource(resource1);
+    }
+    for(int j = 0; j < amount2;j++){
+        p->removeResource(resource2);
+        currentPlayerTurn->addResource(resource2);
+    }
+}
 
-    } else {
-
+void Catan::tradeDevCards(Player* p,DevCardType card1,int amount1,DevCardType card2,int amount2){
+    if(p == currentPlayerTurn){
+        return;
+    }
+    if(currentPlayerTurn->getDevCardAmount(card1) < amount1 || currentPlayerTurn->getDevCardAmount(card2) < amount2){
+        return;
+    }
+    
+    for(int i = 0; i < amount1; i++){
+        currentPlayerTurn->removeDevCard(card1);
+        p->addDevCard(card1);
+    }
+    for(int j = 0; j < amount2;j++){
+        p->removeDevCard(card2);
+        currentPlayerTurn->addDevCard(card2);
     }
 }
 
