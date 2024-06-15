@@ -274,11 +274,17 @@ Catan::Catan(Player* p1,Player* p2,Player* p3): currentPlayerTurn(p1) {
 
 }
 
+Catan::~Catan(){
+    for(auto p:this->players){
+        delete p;
+    }
+    deleteBoard();
+}
 void Catan::deleteBoard(){
     for(int i = 0; i < 54; i++) {
         delete nodes[i];
     }
-    for(int i = 0; i < 12; i++) {
+    for(int i = 0; i < 13; i++) {
         delete tiles[i][0];
         delete tiles[i][1];
     }
@@ -471,6 +477,7 @@ bool Catan::canBuildRoad(int node1,int node2){
             return true;
         }
     }
+    return false;
 }
 //This can be used by any player at the start of the game to place 2 free settlements anywhere on the board.
 void Catan::placeFreeSettlement(Player* p, int node){

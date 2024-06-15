@@ -53,6 +53,7 @@ class Catan{
    Player* currentBiggestArmyHolder;
    public:
    Catan(Player* p1,Player* p2,Player* p3);
+   ~Catan();
    void placeRoad(int node1,int node2);
    void placeSettlement(int node);
    void placeFreeSettlement(Player* p, int node);
@@ -64,6 +65,7 @@ class Catan{
    void useRoadBuildingCard(int node1,int node2,int node3,int node4);
    void useMonopolyCard(Resource resource);
    void tradeResource(Player* p, Resource resource1, int amount1, Resource resource2, int amount2);
+   void tradeDevCards(Player* p,DevCardType card1,int amount1,DevCardType card2,int amount2);
 //    void tradeCards(p1,p2,)
    void endTurn();
    void deleteBoard();

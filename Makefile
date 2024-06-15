@@ -1,6 +1,6 @@
 CXX = clang++
 CXXFLAGS = -std=c++11 -Wall
-TARGET = main
+TARGET = catan
 SRCS = main.cpp Board.cpp Player.cpp
 OBJS = $(SRCS:.cpp=.o)
 DEPS = Board.hpp Player.hpp Types.hpp

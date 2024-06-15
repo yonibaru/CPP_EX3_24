@@ -36,12 +36,17 @@ int main() {
     board.placeFreeRoad(p3,36,35);
     board.placeFreeRoad(p3,23,13);
 
-    //Turns-based Michael starts.
+    //Turns-based game starts: Michael goes first.
     board.rollDice();
     board.endTurn();
     //Now its Robert's turn.
     board.rollDice();
     board.endTurn();
+    //Now its Edwards's turn.
+    board.rollDice();
+    board.endTurn();
+    //We can see the accurate resources each player would have.
+
 
     p1->printResources();
     p2->printResources();
@@ -50,10 +55,7 @@ int main() {
 
     board.checkWinner(); //Iterates over the players, check if theres a player with 10 or more victory points.
 
-    delete p1;
-    delete p2;
-    delete p3;
-    board.deleteBoard();
 
+    //No need to free memory, we have a destructor in place.
     return 0;
 }
