@@ -12,7 +12,7 @@ class Node{
     private:
     int number;
     std::unordered_set<int> neighbours; //Neighbouring nodes, required to properly define all possible edges AKA roads.
-    std::unordered_set<Resource> resources;
+    std::vector<Resource> resources;
     Building buildingType;
     Port port;
     Player* buildingOwner; //Each node with a building holds a pointer to its owner.
@@ -24,6 +24,7 @@ class Node{
     void placeSettlement(Player* p);
     void placeCity(Player* p);
     std::unordered_set<int> getNeighbours() const;
+    std::vector<Resource> getAdjacentResources() const;
     Player* getOwner() const;
     Building getBuildingType() const;
 };

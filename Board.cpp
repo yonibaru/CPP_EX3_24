@@ -14,7 +14,7 @@ bool Node::isNeighbourOf(int n) const {
 // Any building placed on this node will earn resources according to the values stored in 'resources'
 void Node::setResource(Resource r = Resource::NONE){
     if(r != Resource::NONE && this->resources.size() < 3){
-        this->resources.insert(r);
+        this->resources.push_back(r);
     }
 }
 
@@ -47,6 +47,12 @@ Building Node::getBuildingType() const{
 std::unordered_set<int> Node::getNeighbours() const{
     return this->neighbours;
 }
+
+std::vector<Resource> Node::getAdjacentResources() const{
+    return this->resources;
+}
+
+
 
 //Tile Methods
 
@@ -270,13 +276,14 @@ Catan::Catan(Player* p1,Player* p2,Player* p3): currentPlayerTurn(p1) {
     players.push_back(p1);
     players.push_back(p2);
     players.push_back(p3);
-    std::cout << "It's now " << currentPlayerTurn->getName() << "'s turn." << std::endl;
+    std::cout << currentPlayerTurn->getName() << " will go first after everyone places their free settlements and roads." << std::endl;
 
 }
 
 Catan::~Catan(){
     for(auto p:this->players){
         delete p;
+        p = nullptr;
     }
     deleteBoard();
 }
@@ -329,16 +336,16 @@ void Catan::endTurn(){
 void Catan::placeRoad(int node1,int node2) {
 
     //Check if currentPlayer has sufficient resources for that road
-    if(currentPlayerTurn->getResourceAmount(Resource::BRICK) < 1 || currentPlayerTurn->getResourceAmount(Resource::WOOD)){
-        return;
+    if(currentPlayerTurn->getResourceAmount(Resource::BRICK) < 1 || currentPlayerTurn->getResourceAmount(Resource::WOOD) < 1){
+        throw std::logic_error("Current player has insufficient resources to build a road.");
     }
     //Check if a road could even be placed between the two nodes.
     if(nodes[node1]->isNeighbourOf(node2) == 0 || nodes[node2]->isNeighbourOf(node1) == 0){
-        return; 
+        throw std::invalid_argument("A road can't be placed between these two given nodes.");
     }
     //Check if there's no existing road there.
     if(roads[node1][node2] != -1 || roads[node2][node1] != -1) {
-        return;
+        throw std::invalid_argument("There's an existing road between these nodes.");
     }
 
     //Check if either node has a settlement belonging to the current player
@@ -389,18 +396,16 @@ void Catan::placeRoad(int node1,int node2) {
 
 void Catan::placeFreeRoad(Player* p,int node1,int node2) {
     if(p->getRoadCount() >= 2){
-        std::cout << "1" << std::endl;
+        throw std::logic_error("This player has already placed their 2 free roads.");
         return;
     }
     //Check if a road could even be placed between the two nodes.
     if(nodes[node1]->isNeighbourOf(node2) == 0 || nodes[node2]->isNeighbourOf(node1) == 0){
-        std::cout << "2" << std::endl;
-        return; 
+        throw std::invalid_argument("A road can't be placed between these two given nodes.");
     }
     //Check if there's no existing road there.
     if(roads[node1][node2] != -1 || roads[node2][node1] != -1) {
-        std::cout << "3" << std::endl;
-        return;
+        throw std::invalid_argument("There's an existing road between these nodes.");
     }
 
     //Check if either node has a settlement belonging to the current player
@@ -439,7 +444,6 @@ void Catan::placeFreeRoad(Player* p,int node1,int node2) {
             return;
         }
     }
-    std::cout << "4" << std::endl;
 }
 
 bool Catan::canBuildRoad(int node1,int node2){
@@ -483,18 +487,21 @@ bool Catan::canBuildRoad(int node1,int node2){
 void Catan::placeFreeSettlement(Player* p, int node){
     //Check if there's an existing building on that node.
     if(nodes[node]->getBuildingType() != Building::NONE){
-        return;
+        throw std::invalid_argument("There's an existing building in that node.");
     }
 
     //Check if there are any settlements on the nearby nodes
     for(const auto& element: nodes[node]->getNeighbours()){
         if(nodes[element]->getBuildingType() != Building::NONE){
-            return;
+            throw std::invalid_argument("There are existing buildings nearby that node. You can't build too close to them.");
         }
     }
     //The first two settlements are free and can be placed on any node (assuming its empty)
     if(p->getBuildingCount() < 2){
         nodes[node]->placeSettlement(p);
+        for(auto r: nodes[node]->getAdjacentResources()){
+            p->addResource(r);
+        }
         std::cout << players[getPlayerIndex(p)]->getName() << " placed a settlement in node " << node <<"." << std::endl;
     }
 }
@@ -503,17 +510,17 @@ void Catan::placeFreeSettlement(Player* p, int node){
 void Catan::placeSettlement(int node){
     //Check if there's an existing building on that node.
     if(nodes[node]->getBuildingType() != Building::NONE){
-        return;
+        throw std::invalid_argument("There's an existing building in that node.");
     }
     //Check if there are any settlements on the nearby nodes
     for(const auto& element: nodes[node]->getNeighbours()){
         if(nodes[element]->getBuildingType() != Building::NONE){
-            return;
+            throw std::invalid_argument("There are existing buildings nearby that node. You can't build too close to them.");
         }
     }
     //Check if he has the resources
     if(currentPlayerTurn->getResourceAmount(Resource::WOOD) < 1 || currentPlayerTurn->getResourceAmount(Resource::WHEAT) < 1 || currentPlayerTurn->getResourceAmount(Resource::BRICK) < 1 || currentPlayerTurn->getResourceAmount(Resource::WOOL) < 1){
-        return;
+            throw std::logic_error("Insufficient resources to build a settlement.");
     }
     //Check if theres atleast one friendly road connecting to this node and if so, let the player place the road.
     for (const auto& element : nodes[node]->getNeighbours()) {
@@ -527,21 +534,22 @@ void Catan::placeSettlement(int node){
             return;
         }
     }
+    throw std::invalid_argument("No friendly roads connecting to this node.");
 }
 
 
 void Catan::upgradeSettlement(int node){
     //Check if that node is not empty
     if(nodes[node]->getBuildingType() != Building::SETTLEMENT){
-        return;
+        throw std::invalid_argument("There are no settlements on that node.");
     }
     //Check if it is owned by the current player
     if(nodes[node]->getOwner() != currentPlayerTurn){
-        return;
+        throw std::invalid_argument("You don't own that settlement.");
     }
     //Check if he has the sufficient resource to upgrade
     if(currentPlayerTurn->getResourceAmount(Resource::STONE) < 3 || currentPlayerTurn->getResourceAmount(Resource::WHEAT) < 2){
-        return;
+        throw std::logic_error("Insufficient resources to upgrade that settlement.");
     }
     currentPlayerTurn->removeResource(Resource::STONE);
     currentPlayerTurn->removeResource(Resource::STONE);
@@ -557,7 +565,7 @@ void Catan::buyDevelopmentCard(){
         throw std::out_of_range("The deck is empty");
     }
     if(currentPlayerTurn->getResourceAmount(Resource::WHEAT) < 1  || currentPlayerTurn->getResourceAmount(Resource::STONE) < 1 || currentPlayerTurn-> getResourceAmount(Resource::WOOL) < 1){
-        return;
+        throw std::logic_error("Insufficient resources to buy a development card.");
     }
     currentPlayerTurn->removeResource(Resource::WHEAT);
     currentPlayerTurn->removeResource(Resource::WOOL);
@@ -571,7 +579,7 @@ void Catan::buyDevelopmentCard(){
 void Catan::useMonopolyCard(Resource resource){
     //Doesn't have that card.
     if(currentPlayerTurn->getDevCardAmount(DevCardType::MONOPOLY) < 1){
-        return;
+        throw std::logic_error("Player does not own that development card.");
     }
     for(auto p:this->players){
         if(p != this->currentPlayerTurn){
@@ -588,17 +596,19 @@ void Catan::useMonopolyCard(Resource resource){
 void Catan::useYearOfPlentyCard(Resource resource1,Resource resource2){
     //Doesn't have that card.
     if(currentPlayerTurn->getDevCardAmount(DevCardType::YEAR_OF_PLENTY) < 1){
-        return;
+        throw std::logic_error("Player does not own that development card.");
     }
     currentPlayerTurn->addResource(resource1);
     currentPlayerTurn->addResource(resource2);
     currentPlayerTurn->removeDevCard(DevCardType::YEAR_OF_PLENTY);
+    std::cout << getCurrentPlayer()->getName() << " uses a Year of Plenty development card. " << std::endl;
+
 }
 
 void Catan::useRoadBuildingCard(int node1, int node2, int node3, int node4){
     //Doesn't have that card.
     if(currentPlayerTurn->getDevCardAmount(DevCardType::ROAD_BUILDING) < 1){
-        return;
+        throw std::logic_error("Player does not own that development card.");
     }
     if(canBuildRoad(node1,node2) && canBuildRoad(node3,node4)){
         currentPlayerTurn->addResource(Resource::BRICK);
@@ -608,15 +618,17 @@ void Catan::useRoadBuildingCard(int node1, int node2, int node3, int node4){
         placeRoad(node1,node2);
         placeRoad(node3,node4);
         currentPlayerTurn->removeDevCard(DevCardType::ROAD_BUILDING);
+        std::cout << getCurrentPlayer()->getName() << " uses a Road Building development card. " << std::endl;
+
     } 
 }
 
 void Catan::tradeResource(Player* p, Resource resource1, int amount1, Resource resource2, int amount2){
     if(p == currentPlayerTurn){
-        return;
+        throw std::logic_error("You cannot trade yourself.");
     }
     if(currentPlayerTurn->getResourceAmount(resource1) < amount1 || currentPlayerTurn->getResourceAmount(resource2) < amount2){
-        return;
+        throw std::logic_error("One of the players does not have the sufficient resource amount to trade.");
     }
     
     for(int i = 0; i < amount1; i++){
@@ -631,10 +643,10 @@ void Catan::tradeResource(Player* p, Resource resource1, int amount1, Resource r
 
 void Catan::tradeDevCards(Player* p,DevCardType card1,int amount1,DevCardType card2,int amount2){
     if(p == currentPlayerTurn){
-        return;
+        throw std::logic_error("You cannot trade yourself.");
     }
     if(currentPlayerTurn->getDevCardAmount(card1) < amount1 || currentPlayerTurn->getDevCardAmount(card2) < amount2){
-        return;
+        throw std::logic_error("One of the players does not have the sufficient devlopment card amount to trade.");
     }
     
     for(int i = 0; i < amount1; i++){
@@ -671,7 +683,8 @@ void Catan::checkBiggestArmyCard(){
     }
     Player* currentPlayerWithBiggestArmy = nullptr;
     for(auto p: this->players){
-        if(p->getDevCardAmount(DevCardType::KNIGHT) > biggestArmyAmount && biggestArmyAmount >= 3){
+        if(p->getDevCardAmount(DevCardType::KNIGHT) > biggestArmyAmount && p->getDevCardAmount(DevCardType::KNIGHT) >= 3){
+            biggestArmyAmount = p->getDevCardAmount(DevCardType::KNIGHT);
             currentPlayerWithBiggestArmy = p;
         }
     }
@@ -680,6 +693,7 @@ void Catan::checkBiggestArmyCard(){
     }
     for(auto p:this->players){
         if(currentPlayerWithBiggestArmy->getDevCardAmount(DevCardType::KNIGHT) == p->getDevCardAmount(DevCardType::KNIGHT) && p != currentPlayerWithBiggestArmy){
+            std::cout << "There are two players or more with the same amount of knights! No one shall receive the Biggest Army Card for now!" << std::endl;
             return; //Two players have the same amount of knights.
         }
     }

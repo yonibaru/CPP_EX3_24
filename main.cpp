@@ -4,16 +4,11 @@
 #include "Player.hpp"
 #include "Types.hpp"
 
+//SMALL DEMO:
+
 int main() {
 
-    //The logic of catan is fully intergrated into the 'Catan' class, that 
-    //means we could easily implement a UI and build an actual game. Missing features that weren't required but 
-    //ARE requried to play the full game:
-    // * Trades with Ports - could be easily supported in my code.
-    // * Longest Path - not trivial, we need to run a longest path algorithm at the end of each turn
-    //   which is NOT polynomial.
-    // * Robber -
-
+    //This section can be mainly used to show how rollDice() works.
     Player* p1 = new Player("Michael");
     Player* p2 = new Player("Robert");
     Player* p3 = new Player("Edward");
@@ -36,6 +31,9 @@ int main() {
     board.placeFreeRoad(p3,36,35);
     board.placeFreeRoad(p3,23,13);
 
+    p1->printResources();
+    p2->printResources();
+    p3->printResources();
     //Turns-based game starts: Michael goes first.
     board.rollDice();
     board.endTurn();
